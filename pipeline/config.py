@@ -28,7 +28,7 @@ FPS = 30
 
 # --- Free services ---------------------------------------------------------
 GEMINI_API_KEY = env("GEMINI_API_KEY")                  # free key: aistudio.google.com
-GEMINI_MODEL = env("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = env("GEMINI_MODEL", "gemini-flash-latest")
 PEXELS_API_KEY = env("PEXELS_API_KEY")                  # free key: pexels.com/api
 VOICE = env("TTS_VOICE", "en-US-AndrewNeural")          # any edge-tts voice
 VOICE_RATE = env("TTS_RATE", "+5%")
