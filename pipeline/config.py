@@ -21,7 +21,7 @@ AUDIENCE = env("AUDIENCE", "small business owners, freelancers and marketers who
 # --- Format ----------------------------------------------------------------
 # "long"  = 16:9 video, ~4-6 minutes, custom thumbnail
 # "short" = 9:16 YouTube Short, under 60 seconds
-VIDEO_FORMAT = env("VIDEO_FORMAT", "long").lower()
+VIDEO_FORMAT = env("VIDEO_FORMAT", "short").lower()
 IS_SHORT = VIDEO_FORMAT == "short"
 WIDTH, HEIGHT = (1080, 1920) if IS_SHORT else (1920, 1080)
 FPS = 30
@@ -30,7 +30,8 @@ FPS = 30
 GEMINI_API_KEY = env("GEMINI_API_KEY")                  # free key: aistudio.google.com
 GEMINI_MODEL = env("GEMINI_MODEL", "gemini-flash-latest")
 PEXELS_API_KEY = env("PEXELS_API_KEY")                  # free key: pexels.com/api
-VOICE = env("TTS_VOICE", "en-US-AndrewNeural")          # any edge-tts voice
+VOICE = env("TTS_VOICE", "hi-IN-MadhurNeural")          # Hindi voice for Hinglish
+LANGUAGE = env("LANGUAGE", "hinglish")                   # hinglish | english
 VOICE_RATE = env("TTS_RATE", "+5%")
 
 # --- YouTube ---------------------------------------------------------------
@@ -44,7 +45,7 @@ DRY_RUN = env("DRY_RUN", "0") == "1"                    # build video, skip uplo
 
 # --- Fonts -----------------------------------------------------------------
 FONT_BOLD = env("FONT_BOLD", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-CAPTION_FONT = env("CAPTION_FONT", "DejaVu Sans")
+CAPTION_FONT = env("CAPTION_FONT", "Noto Sans")   # covers Devanagari + Latin
 
 # --- Secret format check (prints only ok/BAD, never the values) ---
 def _check_secrets():
