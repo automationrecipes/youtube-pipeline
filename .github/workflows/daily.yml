@@ -2,13 +2,13 @@ name: Daily video
 
 on:
   schedule:
-    - cron: "37 13 * * *"   # long video  — 13:37 UTC (7:07 pm IST, 9:37 am New York)
-    - cron: "13 17 * * *"   # YouTube Short — 17:13 UTC (10:43 pm IST, 1:13 pm New York)
+    - cron: "37 13 * * *"   # Short #1 — 13:37 UTC (7:07 pm IST)
+    - cron: "13 17 * * *"   # Short #2 — 17:13 UTC (10:43 pm IST)
   workflow_dispatch:
     inputs:
       format:
         description: "long or short"
-        default: "long"
+        default: "short"
       dry_run:
         description: "1 = build only, don't upload"
         default: "0"
@@ -33,7 +33,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core fonts-noto-core
           pip install -r requirements.txt
 
       - name: Pick format
@@ -45,7 +45,7 @@ jobs:
           elif [ "${{ github.event.schedule }}" = "13 17 * * *" ]; then
             echo "format=short" >> "$GITHUB_OUTPUT"; echo "dry=0" >> "$GITHUB_OUTPUT"
           else
-            echo "format=long" >> "$GITHUB_OUTPUT"; echo "dry=0" >> "$GITHUB_OUTPUT"
+            echo "format=short" >> "$GITHUB_OUTPUT"; echo "dry=0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Make and upload video
@@ -59,7 +59,7 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           PRIVACY: ${{ vars.PRIVACY || 'private' }}
-          TTS_VOICE: ${{ vars.TTS_VOICE || 'en-US-AndrewNeural' }}
+          TTS_VOICE: ${{ vars.TTS_VOICE || 'hi-IN-MadhurNeural' }}
         run: python -m pipeline.main
 
       - name: Keep a copy of the output (7 days)
