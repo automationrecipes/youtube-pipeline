@@ -68,7 +68,7 @@ def fetch_image(query, dest):
     """Free AI background image (Pollinations, no key). Tried once per video;
     if the service is blocked or slow it is skipped for the rest of the run."""
     global _img_disabled
-    if _img_disabled:
+    if _img_disabled or C.env("AI_IMAGES", "0") != "1":   # off by default: consistent slides
         return None
     prompt = (f"{query}, modern clean tech illustration, cinematic lighting, "
               "high detail, no text, no words")
