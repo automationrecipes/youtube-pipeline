@@ -45,3 +45,20 @@ DRY_RUN = env("DRY_RUN", "0") == "1"                    # build video, skip uplo
 # --- Fonts -----------------------------------------------------------------
 FONT_BOLD = env("FONT_BOLD", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 CAPTION_FONT = env("CAPTION_FONT", "DejaVu Sans")
+
+# --- Secret format check (prints only ok/BAD, never the values) ---
+def _check_secrets():
+    cid = YT_CLIENT_ID or ""
+    cs = YT_CLIENT_SECRET or ""
+    rt = YT_REFRESH_TOKEN or ""
+    print("Secrets check:",
+          "YT_CLIENT_ID ok" if cid.endswith(".apps.googleusercontent.com")
+          else f"YT_CLIENT_ID BAD (len {len(cid)}, looks like a secret: {cid.startswith('GOCSPX')})",
+          "| YT_CLIENT_SECRET ok" if cs.startswith("GOCSPX-")
+          else f"| YT_CLIENT_SECRET BAD (len {len(cs)}, looks like an ID: {cs.endswith('.com')})",
+          "| YT_REFRESH_TOKEN ok" if rt.startswith("1//")
+          else f"| YT_REFRESH_TOKEN BAD (len {len(rt)})",
+          flush=True)
+
+
+_check_secrets()
