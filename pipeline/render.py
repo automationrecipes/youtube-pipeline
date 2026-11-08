@@ -2,6 +2,7 @@
 import json
 import random
 import subprocess
+import time
 import requests
 from . import config as C
 from .voice import speak
@@ -59,6 +60,27 @@ def fetch_footage(query, dest):
     return None
 
 
+# ---------------------------------------------------------------- images --
+def fetch_image(query, dest):
+    """Free AI background image (Pollinations, no key). Returns path or None."""
+    prompt = (f"{query}, modern clean tech illustration, cinematic lighting, "
+              "high detail, no text, no words")
+    url = "https://image.pollinations.ai/prompt/" + requests.utils.quote(prompt)
+    for attempt in range(3):
+        try:
+            r = requests.get(url, params={"width": C.WIDTH, "height": C.HEIGHT,
+                                          "nologo": "true",
+                                          "seed": random.randint(1, 10**6)},
+                             timeout=120)
+            if r.ok and r.headers.get("content-type", "").startswith("image"):
+                dest.write_bytes(r.content)
+                return dest
+        except Exception:
+            pass
+        time.sleep(5 * (attempt + 1))
+    return None
+
+
 # --------------------------------------------------------------- captions --
 def _ts(t):
     h, rem = divmod(max(t, 0), 3600)
@@ -103,12 +125,22 @@ def build_scene(i, scene, work):
     write_ass(words, work / f"s{i}.ass", dur)
 
     clip = fetch_footage(scene.get("footage", "technology"), work / f"s{i}_src.mp4")
+    img = None if clip else fetch_image(scene.get("footage", "technology"),
+                                        work / f"s{i}_bg.jpg")
     W, H = C.WIDTH, C.HEIGHT
     if clip:
         inputs = ["-stream_loop", "-1", "-i", clip.name]
         base = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
                 f"setsar=1,fps={C.FPS},eq=brightness=-0.06:saturation=1.05[bg]")
-    else:  # no Pexels key / no result: clean branded background
+    elif img:  # free AI image with a slow Ken Burns zoom
+        frames = int(dur * C.FPS) + C.FPS
+        inputs = ["-i", img.name]
+        base = (f"[0:v]scale={W * 2}:{H * 2}:force_original_aspect_ratio=increase,"
+                f"crop={W * 2}:{H * 2},"
+                f"zoompan=z='min(zoom+0.0007,1.2)':d={frames}:"
+                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={W}x{H}:fps={C.FPS},"
+                f"setsar=1,eq=brightness=-0.08[bg]")
+    else:  # no footage and no image: clean branded background
         inputs = ["-f", "lavfi", "-i", f"color=c=0x0f172a:s={W}x{H}:r={C.FPS}"]
         base = "[0:v]setsar=1[bg]"
 
