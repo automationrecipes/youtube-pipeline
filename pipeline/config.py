@@ -9,7 +9,7 @@ DATA = ROOT / "data"
 OUT = ROOT / "out"
 
 def env(name, default=None):
-    v = os.environ.get(name)
+    v = (os.environ.get(name) or "").strip()
     return v if v not in (None, "") else default
 
 # --- Channel ---------------------------------------------------------------
