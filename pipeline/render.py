@@ -1,5 +1,6 @@
 """Turns the script into a finished MP4: voice + stock footage + burned-in captions."""
 import json
+import re
 import random
 import subprocess
 import time
@@ -156,7 +157,7 @@ def make_slide(headline, idx, total, dest):
     elif idx == total - 1:
         tag = "FOLLOW FOR MORE"
     else:
-        tag = f"STEP {idx}"
+        tag = f"STEP {idx - 1}" if idx >= 2 else "AAJ KI RECIPE"
     tf = _font(int(W * 0.045))
     tw = d.textlength(tag, font=tf)
     px, py = int(W * 0.04), int(W * 0.022)
@@ -166,7 +167,7 @@ def make_slide(headline, idx, total, dest):
     d.text(((W - tw) / 2, ty), tag, font=tf, fill=(15, 15, 15))
 
     # big headline (Roman letters only, so the bold Latin font is safe)
-    text = (headline or "").upper().strip() or tag
+    text = re.sub(r"^STEP\s*\d+\s*[:.\-]?\s*", "", (headline or "").upper().strip()) or tag
     size = int(W * (0.12 if idx == 0 else 0.10))
     while True:
         hf = _font(size)
