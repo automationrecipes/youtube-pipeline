@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Make and upload video
-        if: ${{ steps.fmt.outputs.format != 'short' || vars.ENABLE_SHORTS != '0' }}
+        if: ${{ steps.fmt.outputs.format != 'short' || (vars.ENABLE_SHORTS || '1') != '0' }}
         env:
           VIDEO_FORMAT: ${{ steps.fmt.outputs.format }}
           DRY_RUN: ${{ steps.fmt.outputs.dry }}
