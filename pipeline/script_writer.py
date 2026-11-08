@@ -32,8 +32,12 @@ def _gemini(prompt, temperature=0.9):
                              "responseMimeType": "application/json"},
     }
     for attempt in range(5):
-        r = requests.post(url, json=body, timeout=180,
-                          headers={"x-goog-api-key": C.GEMINI_API_KEY})
+        try:
+            r = requests.post(url, json=body, timeout=180,
+                              headers={"x-goog-api-key": C.GEMINI_API_KEY})
+        except requests.exceptions.RequestException:
+            time.sleep(20 * (attempt + 1))
+            continue
         if r.status_code in (429, 500, 503):
             time.sleep(20 * (attempt + 1))
             continue
