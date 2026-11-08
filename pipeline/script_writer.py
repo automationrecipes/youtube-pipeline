@@ -59,6 +59,15 @@ def _is_hinglish():
     return (getattr(C, "LANGUAGE", "") or "").lower().startswith("hing")
 
 
+def _deva_ok(scenes):
+    """Hinglish narration must use Devanagari for Hindi words (the Hindi voice
+    mispronounces Roman-script Hindi)."""
+    text = " ".join(str(s.get("narration", "")) for s in scenes)
+    letters = [ch for ch in text if ch.isalpha()]
+    deva = sum(1 for ch in letters if "ऀ" <= ch <= "ॿ")
+    return bool(letters) and deva / len(letters) >= 0.3
+
+
 def write_package():
     past = [h["title"] for h in load_history()][-80:]
     hinglish = _is_hinglish()
@@ -85,7 +94,9 @@ def write_package():
                 "click, settings, free, AI) in LATIN script, for example: "
                 "'आज हम Google Sheets में leads को automatically sort करेंगे, बिल्कुल free में.' "
                 "Keep it conversational and energetic (dekho, simple hai, bas itna karo style), "
-                "address the viewer as आप. Title, description and hashtags in ROMAN Hinglish with "
+                "address the viewer as आप. IMPORTANT: Hindi words in the narration MUST be in "
+                "Devanagari, never Roman letters (the Hindi voice cannot read Roman Hindi). "
+                "Title, description and hashtags in ROMAN Hinglish with "
                 "English keywords, e.g. 'Google Sheets se Leads Automate Karo FREE | AI Trick'.")
         audience = (f"{C.AUDIENCE} in India (Hindi-speaking small business owners, "
                     "freelancers, shop owners and students)")
@@ -111,7 +122,8 @@ statistics or features you are unsure of. Do not claim to be a human or show a f
 
 For every scene also give:
 - "headline": 2-5 word on-screen title in CAPS using ROMAN letters only (English or Roman
-  Hinglish), e.g. "STEP 1: SHEET BANAO", "FREE AUTO REPLY". Scene 1 headline is the hook.
+  Hinglish), e.g. "SHEET BANAO", "FREE AUTO REPLY". Never put step numbers in headlines.
+  Scene 1 headline is the hook.
 - "footage": a 2-4 word ENGLISH stock-footage search query showing something generic and
   filmable (e.g. "laptop typing", "phone notifications"), never brand logos.
 
@@ -130,7 +142,8 @@ Return ONLY JSON with this exact shape:
         pkg = _gemini(prompt)
         scenes = pkg.get("scenes") or []
         words = sum(len(str(s.get("narration", "")).split()) for s in scenes)
-        if scenes and lo <= words <= hi and all(s.get("narration") for s in scenes):
+        if (scenes and lo <= words <= hi and all(s.get("narration") for s in scenes)
+                and (not hinglish or _deva_ok(scenes))):
             break
         print(f"  script rejected ({len(scenes)} scenes, {words} words), retrying", flush=True)
     assert pkg and pkg.get("scenes"), "Gemini returned no scenes"
