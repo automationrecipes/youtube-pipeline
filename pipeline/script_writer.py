@@ -24,28 +24,35 @@ def save_history(entry):
 def _gemini(prompt, temperature=0.9):
     if not C.GEMINI_API_KEY:
         raise SystemExit("GEMINI_API_KEY is missing.")
-    url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
-           f"{C.GEMINI_MODEL}:generateContent")
+    models = [C.GEMINI_MODEL, "gemini-flash-lite-latest"]
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": temperature,
                              "responseMimeType": "application/json"},
     }
-    for attempt in range(5):
+    last = "no response"
+    for attempt in range(6):
+        model = models[attempt % len(models)]
+        url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+               f"{model}:generateContent")
         try:
-            r = requests.post(url, json=body, timeout=180,
+            r = requests.post(url, json=body, timeout=240,
                               headers={"x-goog-api-key": C.GEMINI_API_KEY})
-        except requests.exceptions.RequestException:
-            time.sleep(20 * (attempt + 1))
+        except requests.exceptions.RequestException as e:
+            last = f"{model}: {type(e).__name__}"
+            print("Gemini retry:", last, flush=True)
+            time.sleep(15 * (attempt + 1))
             continue
-        if r.status_code in (429, 500, 503):
-            time.sleep(20 * (attempt + 1))
+        if r.status_code in (404, 429, 500, 502, 503, 504):
+            last = f"{model}: HTTP {r.status_code} {r.text[:200]}"
+            print("Gemini retry:", last, flush=True)
+            time.sleep(15 * (attempt + 1))
             continue
         r.raise_for_status()
         text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
         text = re.sub(r"^```(json)?|```$", "", text.strip()).strip()
         return json.loads(text)
-    raise RuntimeError("Gemini kept failing (rate limit or outage).")
+    raise RuntimeError(f"Gemini kept failing. Last error: {last}")
 
 
 def write_package():
